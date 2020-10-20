@@ -23,23 +23,50 @@ def position(k, r, w, t):
         z += r[i] * (np.cos(w[i] * t) + 1j * np.sin(w[i] * t))
     return z
 
-r = [5, 3, 3]
-w = [2, 3, 4]
+def full_path_graph(k, r, w, N):
+    """Paramaters : k (studied point index), r (radius list),
+    w (angular velocity list), N (nb of calculated points), filename
+    """
+
+    T = determine_T(w)
+    t = 0
+    dt = T / N
+    xdata, ydata = [], []
+
+    while t <= T:
+        z = position(k, r, w, t)
+        xdata.append(z.real)
+        ydata.append(z.imag)
+        t += dt
+    plt.plot(xdata, ydata)
+    plt.axis("equal")
+    plt.savefig("graphs/dynamic_circles__" + "_".join(list(map(str, r))) + "__" + "_".join(list(map(str, w))))
+
+def animated_graph_over_time(k, r, w, N):
+    """Paramaters : k (studied point index), r (radius list),
+    w (angular velocity list), N (nb of calculated points)
+    """
+    fig, ax = plt.subplots()
+    xdata, ydata = [], []
+    ln, = plt.plot([], [])
+
+    def init():
+        ax.set_xlim(- sum(r), sum(r))
+        ax.set_ylim(- sum(r), sum(r))
+        return ln, 
+
+    def update(frame):
+        z = position(k, r, w, frame)
+        xdata.append(z.real)
+        ydata.append(z.imag)
+        ln.set_data(xdata, ydata)
+        return ln,
+
+    T = determine_T(w)
+    ani = animation.FuncAnimation(fig, update, frames=np.linspace(0, T, N), init_func=init)
+    plt.show()
+
+r = [1, 5]
+w = [7, 9]
 N = 1000
-
-T = determine_T(w)
-t = 0
-dt = T / N
-
-absc = []
-ords = []
-
-while t <= T:
-    z = position(len(r), r, w, t)
-    absc.append(z.real)
-    ords.append(z.imag)
-    t += dt
-
-plt.scatter(absc, ords, s = 1)
-plt.axis("equal")
-plt.savefig("My great figure")
+full_path_graph(len(r), r, w, N)
